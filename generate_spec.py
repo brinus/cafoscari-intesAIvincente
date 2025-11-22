@@ -135,7 +135,7 @@ app = BUNDLE(
     return spec_template
 
 def main():
-    print(f"🔧 Generating file {SPEC_FILENAME}...")
+    print(f"Generating file {SPEC_FILENAME}...")
     print(f"   Operating System: {sys.platform}")
     print(f"   Build Type: {BUILD_TYPE}")
     print(f"   Icon: {get_icon_path() or 'None'}")
