@@ -1,8 +1,9 @@
 from PySide6.QtWidgets import QMainWindow, QLabel
 from PySide6.QtGui import QIcon, QPixmap
-from PySide6.QtCore import Qt, QSize, QTimer
+from PySide6.QtCore import Qt
 
 import rc_images
+import rc_icons
 
 class MainWindow(QMainWindow):
 
@@ -24,10 +25,13 @@ class MainWindow(QMainWindow):
         self._background_label = QLabel(self)
         self._background_label.setScaledContents(True)
         self._background_label.setAlignment(Qt.AlignCenter)
-        
+
         self._background_pixmap = QPixmap(":/images/background.png")
         self.update_background()
-        
+
+        self._icon_pixmap = QPixmap(":/icons/icon.ico")
+        self.setWindowIcon(QIcon(self._icon_pixmap))
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
 
