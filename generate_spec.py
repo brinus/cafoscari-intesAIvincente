@@ -120,10 +120,12 @@ coll = COLLECT(
         bundle_icon = ICON_MACOS if ICON_MACOS and os.path.exists(ICON_MACOS) else None
         bundle_icon_line = f"icon='{bundle_icon}'," if bundle_icon else "icon=None,"
         
+        bundle_target = 'coll' if BUILD_TYPE == 'onedir' else 'exe'
+        
         spec_template += f"""
 # Bundle macOS .app
 app = BUNDLE(
-    'coll',
+    {bundle_target},
     name='{APP_NAME}.app',
     {bundle_icon_line}
     bundle_identifier='{BUNDLE_ID}',
