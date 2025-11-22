@@ -1,0 +1,102 @@
+/* Stylesheet principale per CaFoscari IntesAI Vincente */
+
+/* Stile globale per tutti i QPushButton */
+QPushButton {
+    background-color: #2c3e50;
+    color: white;
+    border: 2px solid #34495e;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 180px;
+    min-height: 45px;
+}
+
+QPushButton:hover {
+    background-color: #34495e;
+    border-color: #3498db;
+}
+
+QPushButton:pressed {
+    background-color: #1a252f;
+    border-color: #2980b9;
+}
+
+QPushButton:disabled {
+    background-color: #7f8c8d;
+    color: #bdc3c7;
+    border-color: #95a5a6;
+}
+
+/* Stile specifico per il bottone principale (Start Game) */
+QPushButton#btnStartGame {
+    background-color: #27ae60;
+    border-color: #229954;
+}
+
+QPushButton#btnStartGame:hover {
+    background-color: #2ecc71;
+    border-color: #27ae60;
+}
+
+QPushButton#btnStartGame:pressed {
+    background-color: #1e8449;
+}
+
+/* Stile per il bottone Settings */
+QPushButton#btnSettings {
+    background-color: #3498db;
+    border-color: #2980b9;
+}
+
+QPushButton#btnSettings:hover {
+    background-color: #5dade2;
+    border-color: #3498db;
+}
+
+QPushButton#btnSettings:pressed {
+    background-color: #2471a3;
+}
+
+/* Stile per il bottone Exit */
+QPushButton#btnExit {
+    background-color: #e74c3c;
+    border-color: #c0392b;
+}
+
+QPushButton#btnExit:hover {
+    background-color: #ec7063;
+    border-color: #e74c3c;
+}
+
+QPushButton#btnExit:pressed {
+    background-color: #a93226;
+}
+
+/* Stile per i bottoni Back */
+QPushButton#btnBack {
+    background-color: #95a5a6;
+    border-color: #7f8c8d;
+    min-width: 120px;
+}
+
+QPushButton#btnBack:hover {
+    background-color: #b2babb;
+    border-color: #95a5a6;
+}
+
+QPushButton#btnBack:pressed {
+    background-color: #707b7c;
+}
+
+/* Stile per QLabel (se necessario) */
+QLabel {
+    color: white;
+    font-size: 14px;
+}
+
+/* Stile per la MainWindow */
+QMainWindow {
+    background-color: #1a1a1a;
+}
