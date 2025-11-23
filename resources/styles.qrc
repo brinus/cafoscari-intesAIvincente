@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/styles">
         <file alias="main.qss">styles/main.qss</file>
+        <file alias="container.qss">styles/container.qss</file>
     </qresource>
 </RCC>
