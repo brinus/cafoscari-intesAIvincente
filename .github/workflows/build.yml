@@ -62,11 +62,19 @@ jobs:
         python generate_spec.py
         pyinstaller intesAIvincente.spec
     
+    # Windows specific: Create installer with Inno Setup
+    - name: Create Windows Installer
+      if: runner.os == 'Windows'
+      run: |
+        choco install innosetup -y
+        iscc installer.iss
+    
     - name: Package application
       shell: bash
       run: |
         cd dist
         if [ "$RUNNER_OS" == "Windows" ]; then
+          # Crea anche lo zip per compatibilità
           7z a -tzip "../${{ matrix.artifact_name }}.zip" "CaFoscari IntesAI Vincente"
         elif [ "$RUNNER_OS" == "macOS" ]; then
           zip -r "../${{ matrix.artifact_name }}.zip" "CaFoscari IntesAI Vincente.app"
@@ -81,13 +89,16 @@ jobs:
         name: ${{ matrix.artifact_name }}
         path: |
           ${{ matrix.artifact_name }}.*
+          installer_output/*.exe
         retention-days: 30
     
     - name: Upload to Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v1
       with:
-        files: ${{ matrix.artifact_name }}.*
+        files: |
+          ${{ matrix.artifact_name }}.*
+          installer_output/*.exe
         draft: false
         prerelease: false
       env:
