@@ -1,0 +1,192 @@
+QMainWindow {
+    background-color: transparent;
+}
+
+QPushButton {
+    background-color: white;
+    color: black;
+    border: 4px solid #8B4513;
+    border-radius: 20px;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Comic Sans MS", "Arial", sans-serif;
+    min-width: 180px;
+    min-height: 50px;
+    text-transform: uppercase;
+}
+
+QPushButton:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #FFC870, stop:0.5 #FFA347, stop:1 #FF8C1A);
+    border: 4px solid #A0522D;
+    padding-bottom: 13px;
+    padding-top: 17px;
+}
+
+QPushButton:pressed {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #E67300, stop:0.5 #FF8C1A, stop:1 #FFB84D);
+    border: 4px solid #654321;
+    padding-top: 18px;
+    padding-bottom: 12px;
+}
+
+QPushButton:disabled {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #CCCCCC, stop:0.5 #999999, stop:1 #666666);
+    color: #444444;
+    border-color: #555555;
+}
+
+/* Stile per le label */
+QLabel {
+    color: white;
+    font-size: 16px;
+    font-family: "Comic Sans MS", "Arial", sans-serif;
+    font-weight: bold;
+}
+
+/* Label dentro il container bianco */
+#whiteContainer QLabel {
+    color: #333333;
+}
+
+/* Input field dentro il container */
+#whiteContainer QLineEdit {
+    background-color: white;
+    color: #333333;
+    border: 2px solid #4A90E2;
+    border-radius: 10px;
+    padding: 8px;
+    font-size: 14px;
+    font-family: "Arial", sans-serif;
+}
+
+#whiteContainer QLineEdit:focus {
+    border: 2px solid #FFA347;
+}
+
+/* Bottoni piccoli dentro il container (Yes/No) */
+#whiteContainer QPushButton {
+    min-height: 30px;
+    min-width: 60px;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+#whiteContainer QPushButton:hover {
+    padding: 8px 16px;
+    padding-bottom: 6px;
+    padding-top: 10px;
+}
+
+#whiteContainer QPushButton:pressed {
+    padding: 8px 16px;
+    padding-top: 10px;
+    padding-bottom: 6px;
+}
+
+/* Bottone Yes - Verde */
+#btnYes {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #2E7D32;
+}
+
+#btnYes:hover {
+    background-color: #66BB6A;
+}
+
+#btnYes:pressed {
+    background-color: #388E3C;
+}
+
+/* Bottone No - Rosso */
+#btnNo {
+    background-color: #F44336;
+    color: white;
+    border-color: #C62828;
+}
+
+#btnNo:hover {
+    background-color: #EF5350;
+}
+
+#btnNo:pressed {
+    background-color: #D32F2F;
+}
+
+/* ComboBox dentro il container bianco */
+#whiteContainer QComboBox {
+    background-color: white;
+    color: #333;
+    border: 2px solid #4A90E2;
+    border-radius: 8px;
+    padding: 6px 30px 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    min-height: 25px;
+    max-width: 200px;
+}
+
+#whiteContainer QComboBox:hover {
+    border: 2px solid #FFA347;
+    background-color: #FFFBF5;
+}
+
+#whiteContainer QComboBox:focus {
+    border: 2px solid #FF8C1A;
+}
+
+#whiteContainer QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 25px;
+    border: none;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+#whiteContainer QComboBox::down-arrow {
+    image: none;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #4A90E2;
+    margin-right: 5px;
+}
+
+#whiteContainer QComboBox:hover::down-arrow {
+    border-top-color: #FFA347;
+}
+
+#whiteContainer QComboBox QAbstractItemView {
+    background-color: white;
+    border: 2px solid #4A90E2;
+    border-radius: 8px;
+    padding: 4px;
+    selection-background-color: #FFA347;
+    selection-color: white;
+    outline: none;
+}
+
+#whiteContainer QComboBox QAbstractItemView::item {
+    padding: 6px 12px;
+    border-radius: 4px;
+    min-height: 25px;
+}
+
+#whiteContainer QComboBox QAbstractItemView::item:hover {
+    background-color: #FFF9F0;
+    color: #333;
+}
+
+#whiteContainer QComboBox QAbstractItemView::item:selected {
+    background-color: #FFA347;
+    color: white;
+}
+
+
+
