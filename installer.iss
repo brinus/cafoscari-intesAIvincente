@@ -7,7 +7,7 @@
 #define MyAppIcon "/resources/icons/icon.ico"
 
 [Setup]
-AppId={A8B3C4D5-E6F7-8901-2345-6789ABCDEF01}
+AppId={{A8B3C4D5-E6F7-8901-2345-6789ABCDEF01}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
