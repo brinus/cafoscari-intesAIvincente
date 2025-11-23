@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QLabel, QPushButton, QWidget, QSizePolicy, QVBoxLayout, QStackedWidget, QLineEdit, QGridLayout, QMessageBox, QTextEdit
+from PySide6.QtWidgets import QMainWindow, QLabel, QPushButton, QWidget, QSizePolicy, QVBoxLayout, QStackedWidget, QLineEdit, QGridLayout, QMessageBox, QTextEdit, QComboBox, QHBoxLayout
 from PySide6.QtGui import QIcon, QPixmap, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QFile, QTextStream, QRegularExpression, QTimer
 
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(widget)
         layout.setAlignment(Qt.AlignCenter)
         layout.setSpacing(20)
-        
+
         btn_start = QPushButton("Start Game")
         btn_start.setObjectName("btnStartGame")
         btn_start.setMinimumSize(200, 50)
@@ -104,9 +104,11 @@ class MainWindow(QMainWindow):
         btn_exit.setMinimumSize(200, 50)
         btn_exit.clicked.connect(self.close)
         
+        layout.addStretch(3)
         layout.addWidget(btn_start)
         layout.addWidget(btn_settings)
         layout.addWidget(btn_exit)
+        layout.addStretch(1)
         
         return widget
     
