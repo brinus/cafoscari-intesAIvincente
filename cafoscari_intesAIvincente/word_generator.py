@@ -20,7 +20,7 @@ class WordGenerator:
         file.close()
         
         self._words = [word.strip() for word in content.split(',')]
-        self._words = [word for word in self._words if word]  # Rimuovi stringhe vuote
+        self._words = [word for word in self._words if word]
         
         if not self._words:
             raise ValueError("Il file parole è vuoto")
@@ -33,9 +33,3 @@ class WordGenerator:
     
     def word_exists(self, word: str) -> bool:
         return word.lower() in [w.lower() for w in self._words]
-
-
-if __name__ == "__main__":
-    generator = WordGenerator()
-    print(f"Parole disponibili: {generator.get_total_words()}")
-    print(f"Parola casuale: {generator.get_random_word()}")

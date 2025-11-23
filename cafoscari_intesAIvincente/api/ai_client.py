@@ -1,5 +1,13 @@
 from google import genai
 from typing import List
+import time
+
+
+class RateLimitError(Exception):
+    """Eccezione per rate limit raggiunto"""
+    def __init__(self, retry_after: int):
+        self.retry_after = retry_after
+        super().__init__(f"Rate limit raggiunto. Riprova tra {retry_after} secondi.")
 
 
 class AIClient:
@@ -28,36 +36,68 @@ Attenzione, non restituirmi la sequenza aggiornata ma soltanto la parola che hai
 Genera adesso la parola successiva per la sequenza corrente.
 """
     
+    MAX_REQUESTS_PER_MINUTE = 15
+    RATE_LIMIT_WINDOW = 60  # seconds
+    
     def __init__(self, api_key: str, model_name: str = "gemma-3-27b-it"):
         self.api_key = api_key
         self.model_name = model_name
         
-        genai.configure(api_key=api_key)
+        self.client = genai.Client(api_key=api_key)
         
-        generation_config = {
+        self.generation_config = {
             "temperature": 0.8,
             "top_p": 0.95,
             "top_k": 40,
             "max_output_tokens": 30,
         }
         
-        self.model = genai.GenerativeModel(
-            model_name=model_name,
-            generation_config=generation_config
-        )
+        self._request_timestamps = []
+    
+    def _check_rate_limit(self):
+        """
+        Verifica se possiamo fare una richiesta senza superare il rate limit
+        
+        Raises:
+            RateLimitError: Se il rate limit è stato raggiunto
+        """
+        now = time.time()
+        
+        self._request_timestamps = [
+            ts for ts in self._request_timestamps 
+            if now - ts < self.RATE_LIMIT_WINDOW
+        ]
+        
+        if len(self._request_timestamps) >= self.MAX_REQUESTS_PER_MINUTE:
+            oldest = self._request_timestamps[0]
+            retry_after = int(self.RATE_LIMIT_WINDOW - (now - oldest)) + 1
+            raise RateLimitError(retry_after)
+        
+        self._request_timestamps.append(now)
     
     def generate_word(self, parola_segreta: str, sequenza: List[str]) -> str:
+        self._check_rate_limit()
+        
         prompt = self._build_prompt(parola_segreta, sequenza)
         
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=self.generation_config
+            )
             
             raw_text = response.text
             cleaned_word = self._validate_response(raw_text)
             
             return cleaned_word
             
+        except RateLimitError:
+            raise
         except Exception as e:
+            error_msg = str(e).lower()
+            if "rate limit" in error_msg or "quota" in error_msg or "429" in error_msg:
+                raise RateLimitError(60)
             raise Exception(f"Errore nella chiamata a Gemma API: {str(e)}")
     
     def _build_prompt(self, parola_segreta: str, sequenza: List[str]) -> str:
@@ -90,25 +130,3 @@ Genera adesso la parola successiva per la sequenza corrente.
             return len(response.text) > 0
         except Exception:
             return False
-
-
-if __name__ == "__main__":
-    API_KEY = "your-api-key-here"
-    
-    client = GeminiClient(api_key=API_KEY)
-    
-    if client.test_connection():
-        print("Connessione OK")
-        
-        parola_segreta = "pizza"
-        sequenza = ["cibo"]
-        
-        try:
-            parola = client.generate_word(parola_segreta, sequenza)
-            print(f"Parola segreta: {parola_segreta}")
-            print(f"Sequenza: {sequenza}")
-            print(f"Parola generata: {parola}")
-        except Exception as e:
-            print(f"Errore: {e}")
-    else:
-        print("Connessione fallita")

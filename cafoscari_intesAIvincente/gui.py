@@ -1,10 +1,11 @@
-from PySide6.QtWidgets import QMainWindow, QLabel, QPushButton, QWidget, QSizePolicy, QVBoxLayout, QStackedWidget, QLineEdit, QGridLayout
-from PySide6.QtGui import QIcon, QPixmap
-from PySide6.QtCore import Qt, QFile, QTextStream
+from PySide6.QtWidgets import QMainWindow, QLabel, QPushButton, QWidget, QSizePolicy, QVBoxLayout, QStackedWidget, QLineEdit, QGridLayout, QMessageBox, QTextEdit
+from PySide6.QtGui import QIcon, QPixmap, QRegularExpressionValidator
+from PySide6.QtCore import Qt, QFile, QTextStream, QRegularExpression, QTimer
 
 from cafoscari_intesAIvincente.fsm import StateMachine
-from cafoscari_intesAIvincente.api.ai_client import AIClient
+from cafoscari_intesAIvincente.api.ai_client import AIClient, RateLimitError
 from cafoscari_intesAIvincente.word_generator import WordGenerator
+from cafoscari_intesAIvincente.rate_limit_dialog import RateLimitDialog
 
 import rc_images
 import rc_icons
@@ -35,9 +36,9 @@ class MainWindow(QMainWindow):
         self.setFixedSize(self.__MAIN_WINDOW_WIDTH, self.__MAIN_WINDOW_HEIGHT)
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         
-        # Inizializza il generatore di parole
         self._word_generator = WordGenerator()
-        
+        self._ai_client = AIClient("AIzaSyAmFz8g-tJDFL4h1ByIcN0vB3N0aSMFTgc")
+
         self._background_label = QLabel(self)
         self._background_label.setScaledContents(True)
         self._background_label.setAlignment(Qt.AlignCenter)
@@ -54,6 +55,14 @@ class MainWindow(QMainWindow):
 
         self._stacked_widget = QStackedWidget(self)
         self._stacked_widget.setGeometry(0, 0, self.__MAIN_WINDOW_WIDTH, self.__MAIN_WINDOW_HEIGHT)
+        
+        self._logo_label = QLabel(self)
+        logo_pixmap = QPixmap(":/images/testa.png")
+        scaled_logo = logo_pixmap.scaledToHeight(300, Qt.SmoothTransformation)
+        self._logo_label.setPixmap(scaled_logo)
+        logo_x = (self.__MAIN_WINDOW_WIDTH - scaled_logo.width()) // 2
+        self._logo_label.setGeometry(logo_x, 0, scaled_logo.width(), scaled_logo.height())
+        self._logo_label.raise_()
         
         self._fsm = StateMachine(self)
         
@@ -170,10 +179,25 @@ class MainWindow(QMainWindow):
 
         self.__init_game_variables()
 
-        # WIDGETS' GAMEPLAY HERE
-        self._ql_sequence_display = QLabel("Sequenza corrente: ")
-        self._ql_sequence_display.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self._ql_sequence_display.setFixedHeight(30)
+        sequence_label = QLabel("Sequenza corrente:")
+        sequence_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        
+        self._ql_sequence_display = QTextEdit()
+        self._ql_sequence_display.setReadOnly(True)
+        self._ql_sequence_display.setFixedHeight(80)
+        self._ql_sequence_display.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self._ql_sequence_display.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self._ql_sequence_display.setLineWrapMode(QTextEdit.WidgetWidth)
+        self._ql_sequence_display.setStyleSheet("""
+            QTextEdit {
+                background-color: #f8f9fa;
+                border: 2px solid #dee2e6;
+                border-radius: 5px;
+                padding: 10px;
+                font-size: 14px;
+                color: #333;
+            }
+        """)
 
         self._ql_target_word = QLabel("Parola segreta: ")
         self._ql_target_word.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -182,6 +206,12 @@ class MainWindow(QMainWindow):
         self._line_edit_input = QLineEdit()
         self._line_edit_input.setPlaceholderText("Inserisci la tua parola...")
         self._line_edit_input.setFixedSize(400, 50)
+        
+        regex = QRegularExpression("^[a-zA-ZàèéìòùÀÈÉÌÒÙ]+$")
+        validator = QRegularExpressionValidator(regex)
+        self._line_edit_input.setValidator(validator)
+
+        self._line_edit_input.returnPressed.connect(self.on_user_input)
 
         btn_yes = QPushButton("Yes")
         btn_yes.setObjectName("btnYes")
@@ -202,13 +232,14 @@ class MainWindow(QMainWindow):
         btn_back.setMinimumSize(120, 50)
         btn_back.clicked.connect(self._fsm.go_to_main_menu.emit)
         
-        container_layout.addWidget(self._ql_sequence_display, 0, 0, 1, 3)
-        container_layout.addWidget(self._ql_target_word, 1, 0, 1, 3)
-        container_layout.addWidget(self._line_edit_input, 2, 0, alignment=Qt.AlignCenter)
-        container_layout.addWidget(btn_yes, 2, 1, alignment=Qt.AlignCenter)
-        container_layout.addWidget(btn_no, 2, 2, alignment=Qt.AlignCenter)
-        container_layout.addWidget(self._ql_score, 3, 0, alignment=Qt.AlignLeft)
-        container_layout.addWidget(btn_back, 3, 2, alignment=Qt.AlignRight)
+        container_layout.addWidget(sequence_label, 0, 0, 1, 3)
+        container_layout.addWidget(self._ql_sequence_display, 1, 0, 1, 3)
+        container_layout.addWidget(self._ql_target_word, 2, 0, 1, 3)
+        container_layout.addWidget(self._line_edit_input, 3, 0, alignment=Qt.AlignCenter)
+        container_layout.addWidget(btn_yes, 3, 1, alignment=Qt.AlignCenter)
+        container_layout.addWidget(btn_no, 3, 2, alignment=Qt.AlignCenter)
+        container_layout.addWidget(self._ql_score, 4, 0, alignment=Qt.AlignLeft)
+        container_layout.addWidget(btn_back, 4, 2, alignment=Qt.AlignRight)
 
         layout.addWidget(container)
         
@@ -235,22 +266,57 @@ class MainWindow(QMainWindow):
         self._target    = ""
     
     def __generate_new_target_word(self):
-        """Genera una nuova parola segreta casuale"""
         self._target = self._word_generator.get_random_word()
     
     def __update_game_ui(self):
         self._ql_score.setText(f"Score: {self._score}")
-        self._ql_sequence_display.setText(f"Sequenza corrente: {' '.join(self._sequence)}")
+        sequence_text = ' '.join(self._sequence)
+        self._ql_sequence_display.setPlainText(sequence_text)
         self._ql_target_word.setText(f"Parola segreta: {self._target}")
 
     def on_yes_clicked(self):
         self._score += 1
+        self._sequence = []
         self._ql_score.setText(f"Score: {self._score}")
         self.__generate_new_target_word()
         self.__update_game_ui()
 
     def on_no_clicked(self):
         self._score = max(0, self._score - 1)
+        self._sequence = []
         self._ql_score.setText(f"Score: {self._score}")
         self.__generate_new_target_word()
         self.__update_game_ui()
+
+    def on_user_input(self):
+        user_word = self._line_edit_input.text().strip()
+        if not user_word:
+            return
+        
+        self._sequence.append(user_word)
+        self.__update_game_ui()
+        self._line_edit_input.clear()
+        self._line_edit_input.setStyleSheet("background-color: #d4edda;")
+        QTimer.singleShot(200, lambda: self._line_edit_input.setStyleSheet(""))
+
+        self._line_edit_input.setEnabled(False)
+        QTimer.singleShot(100, self.__process_ai_response)
+
+
+    def __process_ai_response(self):
+        try:
+            ai_word = self._ai_client.generate_word(self._target, self._sequence)
+            self._sequence.append(ai_word)
+            self.__update_game_ui()
+        except RateLimitError as e:
+            dialog = RateLimitDialog(e.retry_after, self)
+            dialog.exec()
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Errore API",
+                f"Errore durante la generazione della parola AI:\n{str(e)}"
+            )
+        finally:
+            self._line_edit_input.setEnabled(True)
+            self._line_edit_input.setFocus()
