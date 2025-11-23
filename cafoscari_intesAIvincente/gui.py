@@ -1,12 +1,15 @@
-from PySide6.QtWidgets import QMainWindow, QLabel, QPushButton, QWidget, QSizePolicy, QVBoxLayout, QStackedWidget
+from PySide6.QtWidgets import QMainWindow, QLabel, QPushButton, QWidget, QSizePolicy, QVBoxLayout, QStackedWidget, QLineEdit, QGridLayout
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt, QFile, QTextStream
 
 from cafoscari_intesAIvincente.fsm import StateMachine
+from cafoscari_intesAIvincente.api.ai_client import AIClient
+from cafoscari_intesAIvincente.word_generator import WordGenerator
 
 import rc_images
 import rc_icons
 import rc_styles
+import rc_data
 
 class MainWindow(QMainWindow):
 
@@ -31,6 +34,9 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, self.__MAIN_WINDOW_WIDTH, self.__MAIN_WINDOW_HEIGHT)
         self.setFixedSize(self.__MAIN_WINDOW_WIDTH, self.__MAIN_WINDOW_HEIGHT)
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        
+        # Inizializza il generatore di parole
+        self._word_generator = WordGenerator()
         
         self._background_label = QLabel(self)
         self._background_label.setScaledContents(True)
@@ -157,21 +163,53 @@ class MainWindow(QMainWindow):
         container = QWidget()
         container.setObjectName("whiteContainer")
         container.setStyleSheet(self._load_stylesheet(":/styles/container.qss"))
-        container_layout = QVBoxLayout(container)
-        container.setFixedSize(800, 500)
+        container_layout = QGridLayout(container)
+        container.setFixedSize(800, 400)
         container_layout.setContentsMargins(40, 40, 40, 40)
         container_layout.setSpacing(20)
-        
+
+        self.__init_game_variables()
+
         # WIDGETS' GAMEPLAY HERE
+        self._ql_sequence_display = QLabel("Sequenza corrente: ")
+        self._ql_sequence_display.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self._ql_sequence_display.setFixedHeight(30)
+
+        self._ql_target_word = QLabel("Parola segreta: ")
+        self._ql_target_word.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self._ql_target_word.setFixedHeight(30)
+
+        self._line_edit_input = QLineEdit()
+        self._line_edit_input.setPlaceholderText("Inserisci la tua parola...")
+        self._line_edit_input.setFixedSize(400, 50)
+
+        btn_yes = QPushButton("Yes")
+        btn_yes.setObjectName("btnYes")
+        btn_yes.setFixedSize(80, 50)
+        btn_yes.clicked.connect(self.on_yes_clicked)
         
+        btn_no = QPushButton("No")
+        btn_no.setObjectName("btnNo")
+        btn_no.setFixedSize(80, 50)
+        btn_no.clicked.connect(self.on_no_clicked)
+
+        self._ql_score = QLabel(f"Score: {self._score}")
+        self._ql_score.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self._ql_score.setFixedSize(100, 30)
+
         btn_back = QPushButton("Back to Menu")
         btn_back.setObjectName("btnBack")
         btn_back.setMinimumSize(120, 50)
         btn_back.clicked.connect(self._fsm.go_to_main_menu.emit)
         
-        container_layout.addStretch()
-        container_layout.addWidget(btn_back, alignment=Qt.AlignLeft)
-        
+        container_layout.addWidget(self._ql_sequence_display, 0, 0, 1, 3)
+        container_layout.addWidget(self._ql_target_word, 1, 0, 1, 3)
+        container_layout.addWidget(self._line_edit_input, 2, 0, alignment=Qt.AlignCenter)
+        container_layout.addWidget(btn_yes, 2, 1, alignment=Qt.AlignCenter)
+        container_layout.addWidget(btn_no, 2, 2, alignment=Qt.AlignCenter)
+        container_layout.addWidget(self._ql_score, 3, 0, alignment=Qt.AlignLeft)
+        container_layout.addWidget(btn_back, 3, 2, alignment=Qt.AlignRight)
+
         layout.addWidget(container)
         
         return widget
@@ -186,4 +224,33 @@ class MainWindow(QMainWindow):
         self._stacked_widget.setCurrentIndex(2)
 
     def on_gameplay_entered(self):
+        self.__init_game_variables()
+        self.__generate_new_target_word()
+        self.__update_game_ui()
         self._stacked_widget.setCurrentIndex(3)
+
+    def __init_game_variables(self):
+        self._score     = 0
+        self._sequence  = []
+        self._target    = ""
+    
+    def __generate_new_target_word(self):
+        """Genera una nuova parola segreta casuale"""
+        self._target = self._word_generator.get_random_word()
+    
+    def __update_game_ui(self):
+        self._ql_score.setText(f"Score: {self._score}")
+        self._ql_sequence_display.setText(f"Sequenza corrente: {' '.join(self._sequence)}")
+        self._ql_target_word.setText(f"Parola segreta: {self._target}")
+
+    def on_yes_clicked(self):
+        self._score += 1
+        self._ql_score.setText(f"Score: {self._score}")
+        self.__generate_new_target_word()
+        self.__update_game_ui()
+
+    def on_no_clicked(self):
+        self._score = max(0, self._score - 1)
+        self._ql_score.setText(f"Score: {self._score}")
+        self.__generate_new_target_word()
+        self.__update_game_ui()
