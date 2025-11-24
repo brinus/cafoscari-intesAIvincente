@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QMainWindow, QLabel, QPushButton, QWidget, QSizePolicy, QVBoxLayout, QStackedWidget, QLineEdit, QGridLayout, QMessageBox, QTextEdit, QComboBox, QHBoxLayout
 from PySide6.QtGui import QIcon, QPixmap, QRegularExpressionValidator
 from PySide6.QtCore import Qt, QFile, QTextStream, QRegularExpression, QTimer
+from PySide6.QtTextToSpeech import QTextToSpeech
+from PySide6.QtCore import QLocale
 
 from cafoscari_intesAIvincente.fsm import StateMachine
 from cafoscari_intesAIvincente.api.ai_client import AIClient, RateLimitError
@@ -38,6 +40,12 @@ class MainWindow(QMainWindow):
         
         self._word_generator = WordGenerator()
         self._ai_client = AIClient("AIzaSyAmFz8g-tJDFL4h1ByIcN0vB3N0aSMFTgc")
+        
+        self._tts = QTextToSpeech(self)
+        for locale in self._tts.availableLocales():
+            if locale.language() == QLocale.Language.Italian:
+                self._tts.setLocale(locale)
+                break
 
         self._background_label = QLabel(self)
         self._background_label.setScaledContents(True)
@@ -299,7 +307,7 @@ class MainWindow(QMainWindow):
         self.__update_game_ui()
         self._line_edit_input.clear()
         self._line_edit_input.setStyleSheet("background-color: #d4edda;")
-        QTimer.singleShot(200, lambda: self._line_edit_input.setStyleSheet(""))
+        QTimer.singleShot(200, lambda: self._line_edit_input.setStyleSheet(":/styles/main.qss"))
 
         self._line_edit_input.setEnabled(False)
         QTimer.singleShot(100, self.__process_ai_response)
@@ -310,6 +318,9 @@ class MainWindow(QMainWindow):
             ai_word = self._ai_client.generate_word(self._target, self._sequence)
             self._sequence.append(ai_word)
             self.__update_game_ui()
+            
+            self._tts.say(ai_word)
+            
         except RateLimitError as e:
             dialog = RateLimitDialog(e.retry_after, self)
             dialog.exec()
