@@ -3,7 +3,7 @@
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "CaFoscari Team"
 #define MyAppURL "https://github.com/brinus/cafoscari-intesAIvincente"
-#define MyAppExeName "CaFoscari - IntesAI Vincente.exe"
+#define MyAppExeName "CaFoscari IntesAI Vincente.exe"
 #define MyAppIcon "/resources/icons/icon.ico"
 
 [Setup]
